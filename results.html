@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HECURA | Scoring Console</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        hecura: { 
+                            bg: 'var(--bg-core)', 
+                            panel: 'var(--bg-panel)', 
+                            primary: '#a855f7', 
+                            accent: '#d946ef', 
+                            cyan: '#06b6d4', 
+                            text: 'var(--text-main)',
+                            heading: 'var(--text-head)',
+                            border: 'var(--border-color)',
+                            gold: '#fbbf24'
+                        }
+                    },
+                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], orbitron: ['Orbitron', 'sans-serif'] },
+                    backgroundImage: { 'grid-pattern': "linear-gradient(to right, #1f1f23 1px, transparent 1px), linear-gradient(to bottom, #1f1f23 1px, transparent 1px)" }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* === THEME VARIABLES === */
+        :root {
+            /* DARK MODE (Default) */
+            --bg-core: #020205;
+            --bg-panel: #0e0e12;
+            --text-main: #d4d4d8;
+            --text-head: #ffffff;
+            --glass-bg: rgba(14, 14, 18, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --sidebar-bg: rgba(14, 14, 18, 0.95);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --logo-filter: drop-shadow(0 0 10px rgba(168,85,247,0.5));
+        }
+
+        [data-theme="light"] {
+            /* LIGHT MODE */
+            --bg-core: #f8fafc;
+            --bg-panel: #ffffff;
+            --text-main: #475569;
+            --text-head: #0f172a;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(168, 85, 247, 0.2);
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --logo-filter: drop-shadow(0 0 5px rgba(168,85,247,0.8));
+        }
+
+        /* GLOBAL STYLES */
+        body { background-color: var(--bg-core); color: var(--text-main); transition: background-color 0.3s ease, color 0.3s ease; overflow-x: hidden; }
+        
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 4px; }
+        
+        /* UTILITIES */
+        .glass-card { background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); }
+        .nav-item.active { background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), transparent); border-left: 3px solid #a855f7; color: var(--text-head); }
+        
+        .bg-grid { background-size: 40px 40px; mask-image: linear-gradient(to bottom, black 40%, transparent 100%); opacity: 0.15; }
+
+        /* LIST ITEM ACTIVE STATE */
+        .participant-card.active { border-color: #a855f7; background: rgba(168, 85, 247, 0.1); box-shadow: 0 0 15px rgba(168, 85, 247, 0.15); }
+
+        /* INPUT GIANT */
+        .score-input {
+            background: transparent; border: none; outline: none;
+            font-size: 5rem; line-height: 1; font-family: 'Orbitron', sans-serif;
+            color: var(--text-head); text-align: center; width: 100%;
+            text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+        }
+        .score-input::placeholder { color: rgba(168,85,247,0.2); text-shadow: none; }
+        
+        /* TOAST ANIMATION */
+        .toast-enter { transform: translateY(100%); opacity: 0; }
+        .toast-enter-active { transform: translateY(0); opacity: 1; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* MOBILE UTILS */
+        @media (max-width: 768px) {
+            .score-input { font-size: 4rem; }
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex relative selection:bg-hecura-gold selection:text-black">
+
+    <script>
+        const SESSION = JSON.parse(sessionStorage.getItem('hecura_session'));
+        if (!SESSION) window.location.href = 'index.html';
+        
+        // Theme Init
+        const savedTheme = localStorage.getItem('hecura_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <div class="fixed inset-0 bg-grid bg-grid-pattern z-0 pointer-events-none"></div>
+
+    <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-hecura-panel border-r border-hecura-border transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 flex flex-col shadow-2xl">
+        <div class="p-6 flex flex-col items-center border-b border-hecura-border">
+            <div class="w-16 h-16 mb-3 relative group cursor-pointer">
+                <div class="absolute inset-0 bg-hecura-primary/30 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <img src="logo.png" alt="HECURA" class="w-full h-full object-contain relative z-10" onerror="this.src='https://via.placeholder.com/64?text=H'">
+            </div>
+            <h2 class="text-2xl font-orbitron font-bold text-hecura-heading tracking-widest">HECURA</h2>
+        </div>
+
+        <div class="flex-1 py-6 space-y-1">
+            <a href="dashboard.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-white/5 transition-colors text-zinc-400">
+                <i class="fa-solid fa-border-all w-6 text-center mr-3"></i> Dashboard
+            </a>
+            <a href="participants.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-white/5 transition-colors text-zinc-400">
+                <i class="fa-solid fa-users w-6 text-center mr-3"></i> Participants
+            </a>
+            <a href="entry.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-white/5 transition-colors text-zinc-400">
+                <i class="fa-solid fa-keyboard w-6 text-center mr-3"></i> Manual Entry
+            </a>
+            <a href="results.html" class="nav-item active flex items-center px-6 py-3 text-sm font-medium transition-colors text-hecura-heading">
+                <i class="fa-solid fa-trophy w-6 text-center mr-3 text-hecura-gold"></i> Update Scores
+            </a>
+        </div>
+        
+        <div class="p-4 border-t border-hecura-border bg-black/20 text-xs text-center text-zinc-600">
+            SCORING MODE ACTIVE
+        </div>
+    </nav>
+
+    <main class="flex-1 md:ml-64 relative z-10 flex flex-col min-h-screen h-screen overflow-hidden">
+        
+        <header class="h-16 border-b border-hecura-border bg-hecura-bg/80 backdrop-blur-md flex items-center justify-between px-4 md:px-8 shrink-0 z-20">
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden text-hecura-heading p-2">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-lg md:text-xl font-orbitron text-hecura-heading truncate">Results Console</h1>
+            </div>
+            <div class="flex items-center gap-2 md:gap-4">
+                 <button onclick="toggleTheme()" class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-white/10 text-zinc-400 hover:text-white transition-colors">
+                    <i id="themeIcon" class="fa-solid fa-sun"></i>
+                </button>
+                <button onclick="toggleLeaderboard()" class="px-3 py-1.5 bg-hecura-gold/10 border border-hecura-gold/30 text-hecura-gold text-xs font-bold rounded-full hover:bg-hecura-gold/20 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-crown"></i> <span class="hidden md:inline">RANKINGS</span>
+                </button>
+                <button onclick="exportCSV()" class="px-3 py-1.5 bg-white/5 border border-white/10 text-zinc-400 text-xs font-bold rounded hover:text-white transition-all">
+                    <i class="fa-solid fa-download"></i> <span class="hidden md:inline">CSV</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 flex overflow-hidden relative">
+            
+            <div id="panelList" class="w-full md:w-1/3 lg:w-96 border-r border-hecura-border bg-hecura-panel/50 flex flex-col transition-all duration-300 absolute inset-0 md:relative z-10">
+                
+                <div class="p-4 border-b border-hecura-border space-y-3 bg-hecura-bg/90 backdrop-blur">
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                        <input type="text" id="searchInput" placeholder="Search ID or Name..." class="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-3 text-sm text-hecura-text focus:border-hecura-primary outline-none focus:bg-black/40 transition-colors">
+                    </div>
+                    <div class="flex gap-2 text-[10px] font-bold">
+                        <button onclick="filterList('all')" id="btnAll" class="flex-1 py-2 rounded bg-white/10 text-white">ALL</button>
+                        <button onclick="filterList('pending')" id="btnPending" class="flex-1 py-2 rounded hover:bg-white/5 text-zinc-500">PENDING</button>
+                        <button onclick="filterList('done')" id="btnDone" class="flex-1 py-2 rounded hover:bg-white/5 text-zinc-500">GRADED</button>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2 pb-20 md:pb-3" id="participantList">
+                    </div>
+            </div>
+
+            <div id="panelGrading" class="w-full md:flex-1 flex flex-col relative bg-gradient-to-br from-hecura-bg via-hecura-panel to-black transition-all duration-300 absolute inset-0 md:relative z-20 translate-x-full md:translate-x-0 opacity-0 md:opacity-100">
+                
+                <div class="md:hidden p-4 pb-0">
+                    <button onclick="closeGradingMobile()" class="text-zinc-400 flex items-center gap-2 text-sm font-bold hover:text-white">
+                        <i class="fa-solid fa-arrow-left"></i> Back to List
+                    </button>
+                </div>
+
+                <div id="emptyPanel" class="absolute inset-0 flex flex-col items-center justify-center text-zinc-600 hidden md:flex">
+                    <i class="fa-solid fa-hand-pointer text-4xl mb-4 animate-bounce"></i>
+                    <p class="font-orbitron">Select a Participant</p>
+                </div>
+
+                <div id="scoringForm" class="hidden flex-col h-full w-full">
+                    
+                    <div class="p-6 md:p-8 pb-0">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="px-2 py-1 rounded bg-white/5 border border-white/10 text-xs font-mono text-zinc-400" id="dispID">ID-000</span>
+                                <h2 class="text-3xl md:text-4xl font-orbitron text-hecura-heading mt-4 leading-tight truncate w-64 md:w-auto" id="dispName">Student Name</h2>
+                                <p class="text-hecura-primary text-base md:text-lg mt-1 truncate w-64 md:w-auto" id="dispCollege">College Name</p>
+                            </div>
+                            <div class="text-right hidden md:block">
+                                <p class="text-[10px] uppercase text-zinc-500 tracking-widest">Phone</p>
+                                <p class="text-sm font-mono text-zinc-300" id="dispPhone">--</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col items-center justify-center relative min-h-[300px]">
+                        <div class="absolute w-64 h-64 border border-hecura-primary/10 rounded-full animate-[spin_10s_linear_infinite] pointer-events-none"></div>
+                        <div class="absolute w-48 h-48 border border-hecura-cyan/10 rounded-full animate-[spin_15s_linear_reverse_infinite] pointer-events-none"></div>
+                        
+                        <label class="text-zinc-500 text-xs md:text-sm font-bold uppercase tracking-[0.3em] mb-4">Award Score</label>
+                        
+                        <div class="relative w-48 md:w-64">
+                            <input type="number" id="scoreInput" class="score-input" placeholder="00" min="0" max="100" inputmode="numeric">
+                            <div class="h-1 w-full bg-white/10 mt-2 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-hecura-primary to-hecura-cyan w-0 transition-all duration-300" id="scoreBar"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 md:p-8 border-t border-hecura-border bg-black/20 backdrop-blur-sm flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="flex items-center gap-2 w-full md:w-auto justify-center md:justify-start">
+                             <input type="checkbox" id="autoAdvance" checked class="accent-hecura-primary h-4 w-4 rounded cursor-pointer">
+                             <label for="autoAdvance" class="text-xs text-zinc-400 cursor-pointer select-none">Auto-Next Student</label>
+                        </div>
+                        
+                        <div class="flex gap-3 w-full md:w-auto">
+                            <button onclick="clearScore()" class="flex-1 md:flex-none px-4 py-3 rounded text-sm font-bold text-zinc-500 border border-white/10 hover:text-white hover:bg-white/5 transition-colors">
+                                RESET
+                            </button>
+                            <button onclick="saveScore()" class="flex-[2] md:flex-none px-8 py-3 bg-white text-black font-bold font-orbitron rounded hover:bg-hecura-primary hover:text-white transition-all shadow-lg flex items-center justify-center gap-2">
+                                SAVE <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="leaderboardModal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="w-full max-w-2xl bg-[#0e0e12] border border-hecura-gold/30 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(251,191,36,0.1)] flex flex-col max-h-[85vh]">
+            <div class="p-5 border-b border-white/10 flex justify-between items-center bg-gradient-to-r from-yellow-900/20 to-transparent">
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-hecura-gold rounded text-black"><i class="fa-solid fa-trophy"></i></div>
+                    <div>
+                        <h3 class="text-xl font-orbitron text-white">Top Performers</h3>
+                        <p class="text-xs text-hecura-gold">Live Ranking</p>
+                    </div>
+                </div>
+                <button onclick="toggleLeaderboard()" class="text-zinc-400 hover:text-white p-2"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div class="overflow-y-auto p-0 flex-1" id="leaderboardList">
+                </div>
+            <div class="p-4 bg-black/40 text-center border-t border-white/5">
+                <button onclick="toggleLeaderboard()" class="md:hidden w-full py-3 bg-white/10 rounded text-sm text-white font-bold">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastContainer" class="fixed bottom-8 right-8 z-50 flex flex-col gap-2 pointer-events-none w-full max-w-sm px-4 md:px-0"></div>
+
+    <script>
+        // --- 1. CONFIG & STATE ---
+        const user = JSON.parse(sessionStorage.getItem('hecura_session'));
+        const DATA_KEY = 'hecura_data_v1';
+        
+        let allParticipants = [];
+        let filteredParticipants = [];
+        let selectedId = null;
+        let currentFilter = 'all';
+
+        // Initialize
+        loadData();
+        updateThemeIcon();
+
+        // --- 2. DATA FUNCTIONS ---
+        function loadData() {
+            const raw = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            allParticipants = raw.filter(p => p.event === user.event);
+            applyFilter(currentFilter);
+        }
+
+        function applyFilter(type) {
+            currentFilter = type;
+            
+            // UI Toggle
+            document.querySelectorAll('#btnAll, #btnPending, #btnDone').forEach(b => {
+                b.className = "flex-1 py-2 rounded hover:bg-white/5 text-zinc-500 transition-colors";
+            });
+            const activeBtn = type === 'all' ? 'btnAll' : (type === 'pending' ? 'btnPending' : 'btnDone');
+            document.getElementById(activeBtn).className = "flex-1 py-2 rounded bg-white/10 text-white font-bold transition-colors shadow-inner";
+
+            // Filter Logic
+            if(type === 'all') filteredParticipants = allParticipants;
+            if(type === 'pending') filteredParticipants = allParticipants.filter(p => p.score === "" || p.score === null || p.score === undefined);
+            if(type === 'done') filteredParticipants = allParticipants.filter(p => p.score !== "" && p.score !== null && p.score !== undefined);
+
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            if(term) {
+                filteredParticipants = filteredParticipants.filter(p => 
+                    p.name.toLowerCase().includes(term) || p.id.toLowerCase().includes(term)
+                );
+            }
+
+            renderList();
+        }
+
+        // --- 3. UI RENDERING ---
+        function renderList() {
+            const container = document.getElementById('participantList');
+            container.innerHTML = '';
+
+            if(filteredParticipants.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-zinc-600 text-sm">No participants found</div>`;
+                return;
+            }
+
+            filteredParticipants.forEach(p => {
+                const isSelected = (p.id === selectedId);
+                const hasScore = (p.score !== null && p.score !== "" && p.score !== undefined);
+
+                const div = document.createElement('div');
+                div.className = `participant-card p-4 md:p-3 rounded-lg border border-white/5 cursor-pointer transition-all hover:bg-white/5 flex justify-between items-center group ${isSelected ? 'active' : 'bg-black/20'}`;
+                
+                // Use string in onclick safely
+                div.onclick = function() { selectStudent(p.id); };
+
+                div.innerHTML = `
+                    <div class="min-w-0">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs font-mono text-zinc-500 group-hover:text-white">${p.id}</span>
+                            ${hasScore ? '<i class="fa-solid fa-circle-check text-[10px] text-green-500"></i>' : ''}
+                        </div>
+                        <h4 class="text-hecura-text font-bold truncate text-sm md:text-sm mt-0.5">${p.name}</h4>
+                    </div>
+                    ${hasScore 
+                        ? `<span class="text-xl md:text-lg font-orbitron font-bold text-hecura-primary">${p.score}</span>` 
+                        : `<i class="fa-solid fa-chevron-right text-zinc-700 text-xs md:hidden"></i><span class="h-2 w-2 rounded-full bg-zinc-700 hidden md:block"></span>`}
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function selectStudent(id) {
+            selectedId = id;
+            const student = allParticipants.find(p => p.id === id);
+            if(!student) return;
+
+            // Mobile Transition
+            if (window.innerWidth < 768) {
+                const panelList = document.getElementById('panelList');
+                const panelGrading = document.getElementById('panelGrading');
+                
+                panelList.classList.add('-translate-x-full', 'opacity-0');
+                panelList.style.pointerEvents = 'none';
+
+                panelGrading.classList.remove('translate-x-full', 'opacity-0');
+                panelGrading.classList.add('translate-x-0', 'opacity-100');
+            }
+
+            // Desktop Logic
+            document.getElementById('emptyPanel').classList.remove('md:flex');
+            document.getElementById('emptyPanel').classList.add('hidden');
+            
+            const form = document.getElementById('scoringForm');
+            form.classList.remove('hidden');
+            form.classList.add('flex');
+
+            // Populate Form
+            document.getElementById('dispName').innerText = student.name;
+            document.getElementById('dispID').innerText = student.id;
+            document.getElementById('dispCollege').innerText = student.college;
+            document.getElementById('dispPhone').innerText = student.phone || '--';
+            
+            const input = document.getElementById('scoreInput');
+            input.value = student.score || '';
+            updateScoreBar(input.value);
+            
+            // Re-render list to show active state
+            renderList();
+        }
+
+        function closeGradingMobile() {
+            const panelList = document.getElementById('panelList');
+            const panelGrading = document.getElementById('panelGrading');
+
+            panelGrading.classList.remove('translate-x-0', 'opacity-100');
+            panelGrading.classList.add('translate-x-full', 'opacity-0');
+
+            panelList.classList.remove('-translate-x-full', 'opacity-0');
+            panelList.classList.remove('opacity-0');
+            panelList.style.pointerEvents = 'auto';
+            
+            // Optional: deselect
+            // selectedId = null; 
+            // renderList();
+        }
+
+        // --- 4. SCORING LOGIC ---
+        function saveScore() {
+            if(!selectedId) return;
+            const input = document.getElementById('scoreInput');
+            const val = input.value;
+
+            // Strict Validation
+            if(val === '' || isNaN(val) || val < 0 || val > 100) {
+                showToast("Score must be 0-100", "error");
+                return;
+            }
+
+            // DETERMINE NEXT STUDENT ID BEFORE SAVING
+            // (Because saving might remove the current student from the list if filtering by 'Pending')
+            let nextStudentId = null;
+            if(document.getElementById('autoAdvance').checked) {
+                const currentIndex = filteredParticipants.findIndex(p => p.id === selectedId);
+                
+                if (currentIndex !== -1) {
+                    // If we are viewing 'Pending', the current item is about to disappear.
+                    // The item that *was* at index+1 will slide up to index.
+                    // However, relying on index after a re-render is risky.
+                    // Safer: Grab the ID of the next person right now.
+                    if (currentIndex + 1 < filteredParticipants.length) {
+                        nextStudentId = filteredParticipants[currentIndex + 1].id;
+                    }
+                }
+            }
+
+            // UPDATE DATA
+            const rawData = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            const masterIndex = rawData.findIndex(p => p.id === selectedId && p.event === user.event);
+            
+            if(masterIndex !== -1) {
+                rawData[masterIndex].score = val;
+                localStorage.setItem(DATA_KEY, JSON.stringify(rawData));
+                
+                // Confetti & Toast
+                if(parseInt(val) >= 90) launchConfetti();
+                showToast(`Score Saved: ${val}`);
+
+                // Reload Data (Refreshes Filtered List)
+                loadData();
+
+                // HANDLE AUTO ADVANCE
+                if(nextStudentId) {
+                    selectStudent(nextStudentId);
+                } else if (document.getElementById('autoAdvance').checked) {
+                    // End of list or no next student
+                    showToast("List completed!");
+                    if(window.innerWidth < 768) closeGradingMobile();
+                    else {
+                        // Reset form on desktop
+                        document.getElementById('scoreInput').value = '';
+                        updateScoreBar(0);
+                        // Optional: Go back to empty state
+                        // document.getElementById('emptyPanel').classList.remove('hidden');
+                        // document.getElementById('emptyPanel').classList.add('md:flex');
+                        // document.getElementById('scoringForm').classList.remove('flex');
+                        // document.getElementById('scoringForm').classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        function clearScore() {
+            document.getElementById('scoreInput').value = '';
+            updateScoreBar(0);
+        }
+
+        // --- 5. UTILITIES ---
+        document.getElementById('scoreInput').addEventListener('input', (e) => {
+            if(e.target.value > 100) e.target.value = 100; // Hard cap input
+            updateScoreBar(e.target.value);
+        });
+        
+        document.getElementById('searchInput').addEventListener('input', () => applyFilter(currentFilter));
+        
+        document.getElementById('scoreInput').addEventListener('keypress', (e) => { 
+            if(e.key === 'Enter') saveScore(); 
+        });
+
+        function updateScoreBar(val) {
+            const safeVal = Math.min(Math.max(val || 0, 0), 100);
+            document.getElementById('scoreBar').style.width = `${safeVal}%`;
+        }
+
+        function launchConfetti() {
+            if(typeof confetti === 'function') {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#a855f7', '#06b6d4', '#fbbf24'] });
+            }
+        }
+
+        function showToast(message, type="success") {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const border = type === "error" ? "border-red-500/50 text-red-400" : "border-green-500/50 text-green-400";
+            
+            toast.className = `bg-hecura-panel border ${border} text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 toast-enter pointer-events-auto backdrop-blur-md w-full justify-center md:justify-start`;
+            toast.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-triangle-exclamation' : 'fa-circle-info'}"></i> <span class="font-orbitron text-sm">${message}</span>`;
+            
+            container.appendChild(toast);
+            
+            // Trigger Animation
+            requestAnimationFrame(() => { 
+                toast.classList.remove('toast-enter'); 
+                toast.classList.add('toast-enter-active'); 
+            });
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // --- 6. LEADERBOARD & THEME ---
+        function toggleLeaderboard() {
+            const modal = document.getElementById('leaderboardModal');
+            const list = document.getElementById('leaderboardList');
+            
+            if(modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                // Calculate ranks on the fly
+                const graded = allParticipants.filter(p => p.score !== "" && p.score !== null).sort((a,b) => b.score - a.score);
+                
+                list.innerHTML = '';
+                if(graded.length === 0) list.innerHTML = `<div class="p-8 text-center text-zinc-500">No scores recorded yet.</div>`;
+
+                graded.slice(0, 10).forEach((p, index) => {
+                    let rankIcon = `<span class="font-mono text-zinc-500">#${index+1}</span>`;
+                    let bg = "border-white/5";
+                    if(index === 0) { bg = "bg-yellow-500/10 border-l-4 border-yellow-500"; rankIcon = "🥇"; }
+                    else if(index === 1) { bg = "bg-zinc-400/10 border-l-4 border-zinc-400"; rankIcon = "🥈"; }
+                    else if(index === 2) { bg = "bg-amber-700/10 border-l-4 border-amber-700"; rankIcon = "🥉"; }
+
+                    list.innerHTML += `
+                        <div class="p-4 border-b ${bg} flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 text-center text-lg">${rankIcon}</div>
+                                <div><h4 class="text-white font-bold text-sm">${p.name}</h4><p class="text-[10px] text-zinc-400">${p.college}</p></div>
+                            </div>
+                            <div class="text-xl font-orbitron text-white">${p.score}</div>
+                        </div>`;
+                });
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hecura_theme', newTheme);
+            updateThemeIcon();
+        }
+
+        function updateThemeIcon() {
+            const icon = document.getElementById('themeIcon');
+            const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+            icon.className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+        }
+
+        function exportCSV() {
+            if (allParticipants.length === 0) { showToast("No data to export", "error"); return; }
+            
+            let csv = "Rank,ID,Name,College,Phone,Score\n";
+            const sorted = [...allParticipants].sort((a,b) => (b.score || 0) - (a.score || 0));
+            
+            sorted.forEach((row, i) => { 
+                // Escape quotes in strings
+                const name = row.name.replace(/"/g, '""');
+                const college = row.college.replace(/"/g, '""');
+                csv += `${i+1},${row.id},"${name}","${college}","${row.phone||''}",${row.score || 0}\n`; 
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.setAttribute('hidden', '');
+            a.setAttribute('href', url);
+            a.setAttribute('download', `Results_${user.event}.csv`);
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HECURA | Manual Entry</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        hecura: { 
+                            bg: 'var(--bg-core)', 
+                            panel: 'var(--bg-panel)', 
+                            primary: '#a855f7', 
+                            accent: '#d946ef', 
+                            cyan: '#06b6d4', 
+                            success: '#10b981', 
+                            danger: '#ef4444',
+                            text: 'var(--text-main)',
+                            heading: 'var(--text-head)',
+                            border: 'var(--border-color)'
+                        }
+                    },
+                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], orbitron: ['Orbitron', 'sans-serif'] },
+                    backgroundImage: { 'grid-pattern': "linear-gradient(to right, var(--grid-color) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px)" },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'scan': 'scan 3s linear infinite'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* === THEME VARIABLES === */
+        :root {
+            /* DARK MODE (Default) */
+            --bg-core: #020205;
+            --bg-panel: #0e0e12;
+            --text-main: #d4d4d8; /* zinc-300 */
+            --text-head: #ffffff;
+            --glass-bg: rgba(14, 14, 18, 0.8);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --sidebar-bg: rgba(14, 14, 18, 0.95);
+            --grid-color: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --input-bg: rgba(0, 0, 0, 0.4);
+            --logo-filter: drop-shadow(0 0 10px rgba(168,85,247,0.5));
+        }
+
+        [data-theme="light"] {
+            /* LIGHT MODE */
+            --bg-core: #f0f2f5;
+            --bg-panel: #ffffff;
+            --text-main: #475569; /* slate-600 */
+            --text-head: #0f172a; /* slate-900 */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(168, 85, 247, 0.2);
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --grid-color: rgba(0, 0, 0, 0.05);
+            --border-color: rgba(0, 0, 0, 0.1);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --logo-filter: drop-shadow(0 0 5px rgba(168,85,247,0.8));
+        }
+
+        /* BASE & SCROLL */
+        body { background-color: var(--bg-core); color: var(--text-main); transition: background-color 0.5s ease, color 0.5s ease; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-core); }
+        ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 4px; }
+        
+        /* BACKGROUND GRID */
+        .bg-grid { background-size: 40px 40px; mask-image: linear-gradient(to bottom, black 40%, transparent 100%); opacity: 0.15; }
+
+        /* GLASS CARD */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        /* INPUT STYLING */
+        .tech-input {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-head);
+            transition: all 0.3s ease;
+            font-family: 'Rajdhani', sans-serif;
+            letter-spacing: 0.05em;
+        }
+        .tech-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+            background: var(--bg-panel);
+        }
+        .tech-input:disabled {
+            background: var(--bg-core);
+            border-color: transparent;
+            color: var(--text-main);
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        /* NAVIGATION */
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), transparent);
+            border-left: 3px solid #a855f7;
+            color: var(--text-head);
+        }
+        #sidebar { background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); }
+        header { background: var(--glass-bg); border-bottom: 1px solid var(--border-color); }
+
+        /* TOAST NOTIFICATION */
+        .toast-enter { transform: translateX(100%); opacity: 0; }
+        .toast-enter-active { transform: translateX(0); opacity: 1; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .toast-exit { transform: translateX(100%); opacity: 0; transition: all 0.5s ease; }
+    </style>
+</head>
+<body class="text-hecura-text antialiased min-h-screen flex relative selection:bg-hecura-cyan selection:text-white">
+
+    <script>
+        const savedTheme = localStorage.getItem('hecura_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        const SESSION = JSON.parse(sessionStorage.getItem('hecura_session'));
+        if (!SESSION) window.location.href = 'index.html';
+    </script>
+
+    <div class="fixed inset-0 bg-grid bg-grid-pattern z-0 pointer-events-none"></div>
+
+    <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 flex flex-col">
+        <div class="p-6 flex flex-col items-center border-b border-hecura-border">
+            <div class="w-16 h-16 mb-3 relative group cursor-pointer">
+                <div class="absolute inset-0 bg-hecura-primary/30 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <img src="logo.png" alt="HECURA" class="w-full h-full object-contain relative z-10 drop-shadow-[0_0_5px_rgba(168,85,247,0.8)]">
+            </div>
+            <h2 class="text-2xl font-orbitron font-bold text-hecura-heading tracking-widest">HECURA</h2>
+        </div>
+
+        <div class="flex-1 py-6 space-y-1">
+            <a href="dashboard.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-hecura-text/5 transition-colors text-hecura-text">
+                <i class="fa-solid fa-grid-2 w-6 text-center mr-3"></i> Dashboard
+            </a>
+            <a href="participants.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-hecura-text/5 transition-colors text-hecura-text">
+                <i class="fa-solid fa-users w-6 text-center mr-3"></i> Participants
+            </a>
+            <a href="entry.html" class="nav-item active flex items-center px-6 py-3 text-sm font-medium transition-colors">
+                <i class="fa-solid fa-keyboard w-6 text-center mr-3 text-green-500"></i> Manual Entry
+            </a>
+            <a href="results.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium hover:bg-hecura-text/5 transition-colors text-hecura-text">
+                <i class="fa-solid fa-trophy w-6 text-center mr-3"></i> Update Scores
+            </a>
+        </div>
+
+        <div class="p-4 border-t border-hecura-border bg-black/20 text-xs text-center text-hecura-text/60">
+            SECURE TERMINAL ACTIVE
+        </div>
+    </nav>
+
+    <main class="flex-1 md:ml-64 relative z-10 flex flex-col min-h-screen">
+        
+        <header class="h-16 sticky top-0 z-30 flex items-center justify-between px-4 md:px-8">
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden text-hecura-heading">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <h1 class="text-xl font-orbitron text-hecura-heading">Registration Terminal</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="px-3 py-1 bg-hecura-primary/10 border border-hecura-primary/30 rounded text-xs text-hecura-primary font-bold tracking-wider" id="headerEvent">
+                    LOADING...
+                </div>
+                <button onclick="toggleTheme()" class="w-8 h-8 rounded-full border border-hecura-border flex items-center justify-center text-hecura-text hover:text-hecura-primary hover:border-hecura-primary transition-all">
+                    <i class="fa-solid fa-sun" id="themeIcon"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-4 md:p-8 max-w-5xl mx-auto w-full">
+            
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <div class="flex-1">
+                    <div class="glass-card rounded-xl p-1 relative overflow-hidden" id="formCard">
+                        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-green-500 to-transparent opacity-50"></div>
+                        
+                        <form id="entryForm" class="p-6 md:p-8 rounded-xl flex flex-col gap-6">
+                            
+                            <div class="flex justify-between items-center border-b border-hecura-border pb-4">
+                                <h3 class="text-xl font-orbitron text-hecura-heading">New Participant</h3>
+                                <p class="text-xs text-hecura-text opacity-70">Enter details from ID Tag</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-hecura-text opacity-70 uppercase tracking-wider">Assigned Event</label>
+                                    <div class="relative">
+                                        <i class="fa-solid fa-lock absolute left-3 top-1/2 -translate-y-1/2 text-hecura-text opacity-50"></i>
+                                        <input type="text" id="inpEvent" readonly class="tech-input w-full pl-10 pr-4 py-3 rounded-lg font-bold">
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-hecura-cyan uppercase tracking-wider">Master ID (From Tag)</label>
+                                    <div class="relative">
+                                        <i class="fa-solid fa-id-card absolute left-3 top-1/2 -translate-y-1/2 text-hecura-cyan"></i>
+                                        <input type="text" id="inpID" required placeholder="e.g. HCR-101" class="tech-input w-full pl-10 pr-4 py-3 rounded-lg text-hecura-cyan font-bold tracking-widest uppercase focus:border-hecura-cyan focus:ring-1 focus:ring-hecura-cyan transition-all">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-hecura-text opacity-70 uppercase tracking-wider">Full Name</label>
+                                <div class="relative group">
+                                    <i class="fa-solid fa-user absolute left-3 top-1/2 -translate-y-1/2 text-hecura-text opacity-50 group-focus-within:text-hecura-primary transition-colors"></i>
+                                    <input type="text" id="inpName" required placeholder="Enter student name" class="tech-input w-full pl-10 pr-4 py-3 rounded-lg font-medium">
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-hecura-text opacity-70 uppercase tracking-wider">College / Institution</label>
+                                <div class="relative group">
+                                    <i class="fa-solid fa-building-columns absolute left-3 top-1/2 -translate-y-1/2 text-hecura-text opacity-50 group-focus-within:text-hecura-primary transition-colors"></i>
+                                    <input type="text" id="inpCollege" required placeholder="College Name" class="tech-input w-full pl-10 pr-4 py-3 rounded-lg font-medium">
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-hecura-text opacity-70 uppercase tracking-wider">Phone Number</label>
+                                <div class="relative group">
+                                    <i class="fa-solid fa-phone absolute left-3 top-1/2 -translate-y-1/2 text-hecura-text opacity-50 group-focus-within:text-hecura-primary transition-colors"></i>
+                                    <input type="tel" id="inpPhone" required pattern="[0-9]{10}" maxlength="10" placeholder="9876543210" class="tech-input w-full pl-10 pr-4 py-3 rounded-lg font-mono tracking-wide">
+                                </div>
+                                <p class="text-[10px] text-red-400 hidden" id="phoneError">Must be 10 digits</p>
+                            </div>
+
+                            <div class="pt-4 flex gap-4">
+                                <button type="button" onclick="resetForm()" class="px-6 py-3 rounded-lg border border-hecura-border text-hecura-text hover:text-hecura-heading hover:bg-hecura-text/5 transition-all font-orbitron text-sm">
+                                    Clear
+                                </button>
+                                <button type="submit" class="flex-1 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-bold font-orbitron py-3 rounded-lg shadow-lg hover:shadow-green-500/30 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                                    <span>CONFIRM REGISTRATION</span> <i class="fa-solid fa-floppy-disk"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-80 flex flex-col gap-4">
+                    <div class="glass-card rounded-xl p-5 h-full">
+                        <div class="flex items-center gap-2 mb-4 text-hecura-text">
+                            <i class="fa-solid fa-clock-rotate-left"></i>
+                            <h4 class="font-orbitron text-sm uppercase tracking-wider">Session History</h4>
+                        </div>
+                        
+                        <div id="recentList" class="space-y-3">
+                            <div class="text-center py-8 text-hecura-text opacity-50 text-xs italic">
+                                No entries yet in this session.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="glass-card rounded-xl p-5 border-l-2 border-hecura-primary">
+                        <h4 class="text-xs text-hecura-text opacity-70 uppercase">Session Count</h4>
+                        <p class="text-3xl font-orbitron text-hecura-heading mt-1" id="sessionCount">0</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        
+        <div class="mt-auto py-6 border-t border-hecura-border text-center">
+            <p class="text-[10px] text-hecura-text opacity-50 font-mono">
+                HECURA SYSTEM V2.0 | Developed by <span class="text-hecura-primary">Deva Veera Kumaran</span>
+            </p>
+        </div>
+
+    </main>
+
+    <div id="toastContainer" class="fixed bottom-8 right-8 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // 1. INITIALIZATION
+        const user = JSON.parse(sessionStorage.getItem('hecura_session'));
+        const DATA_KEY = 'hecura_data_v1';
+        let sessionEntries = 0;
+
+        document.getElementById('headerEvent').innerText = user.event;
+        document.getElementById('inpEvent').value = user.event;
+
+        // Initialize Theme Icon
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const icon = document.getElementById('themeIcon');
+        if(currentTheme === 'light') {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+
+        // 2. FORM SUBMISSION
+        document.getElementById('entryForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get Values
+            const id = document.getElementById('inpID').value.trim().toUpperCase(); 
+            const name = document.getElementById('inpName').value.trim();
+            const college = document.getElementById('inpCollege').value.trim();
+            const phone = document.getElementById('inpPhone').value.trim();
+            const eventName = user.event;
+
+            // Validation 1: Phone
+            if(phone.length !== 10 || isNaN(phone)) {
+                document.getElementById('phoneError').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('phoneError').classList.add('hidden');
+            }
+
+            // Validation 2: Check Duplicate ID in Database
+            const allData = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            
+            const duplicate = allData.find(p => p.id === id && p.event === eventName);
+            
+            if(duplicate) {
+                alert(`ERROR: Participant ID ${id} is ALREADY registered for ${eventName}.`);
+                return; 
+            }
+
+            // Create Object
+            const newEntry = {
+                id: id,
+                name: name,
+                college: college,
+                phone: phone,
+                event: eventName,
+                score: null, 
+                timestamp: new Date().toISOString()
+            };
+
+            // Save to LocalStorage
+            saveData(newEntry);
+
+            // UI Feedback
+            showToast(`ID ${id} Registered`);
+            addToRecentList(newEntry);
+            resetForm();
+            
+            // Increment Session Count
+            sessionEntries++;
+            document.getElementById('sessionCount').innerText = sessionEntries;
+        });
+
+        // 3. STORAGE LOGIC
+        function saveData(entry) {
+            const data = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            data.push(entry);
+            localStorage.setItem(DATA_KEY, JSON.stringify(data));
+        }
+
+        // 4. UI UTILS
+        function resetForm() {
+            document.getElementById('inpID').value = '';
+            document.getElementById('inpName').value = '';
+            document.getElementById('inpCollege').value = '';
+            document.getElementById('inpPhone').value = '';
+        }
+
+        function addToRecentList(entry) {
+            const container = document.getElementById('recentList');
+            
+            // Remove "No entries" text
+            if(container.children[0] && container.children[0].classList.contains('text-center')) {
+                container.innerHTML = '';
+            }
+
+            // Create Item HTML
+            const div = document.createElement('div');
+            // Using border-hecura-border variable for adaptability
+            div.className = "bg-hecura-text/5 p-3 rounded-lg border border-hecura-border flex justify-between items-center animate-[pulse_0.5s_ease-in-out]";
+            div.innerHTML = `
+                <div>
+                    <p class="text-hecura-heading font-bold text-sm">${entry.name}</p>
+                    <p class="text-[10px] text-hecura-text opacity-70">${entry.id} | ${entry.college}</p>
+                </div>
+                <div class="h-2 w-2 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]"></div>
+            `;
+
+            // Add to top
+            container.prepend(div);
+
+            // Keep only last 5
+            if(container.children.length > 5) {
+                container.lastElementChild.remove();
+            }
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hecura_theme', newTheme);
+            
+            if(newTheme === 'light') {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            } else {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            // Updated toast style to use hecura-panel
+            toast.className = "bg-hecura-panel border border-green-500/50 text-hecura-heading px-6 py-3 rounded-lg shadow-[0_0_20px_rgba(16,185,129,0.2)] flex items-center gap-3 toast-enter pointer-events-auto";
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-green-500"></i> <span class="font-orbitron text-sm">${message}</span>`;
+            
+            container.appendChild(toast);
+
+            requestAnimationFrame(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-enter-active');
+            });
+
+            setTimeout(() => {
+                toast.classList.remove('toast-enter-active');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 500);
+            }, 3000);
+        }
+
+    </script>
+</body>
+</html>

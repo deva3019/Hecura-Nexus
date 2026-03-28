@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HECURA | Participants Database</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        hecura: {
+                            bg: '#020205',
+                            panel: '#0e0e12',
+                            primary: '#a855f7', // Purple-500
+                            accent: '#06b6d4',  // Cyan-500
+                            surface: 'rgba(255, 255, 255, 0.03)',
+                            border: 'rgba(255, 255, 255, 0.08)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Rajdhani', 'sans-serif'],
+                        orbitron: ['Orbitron', 'sans-serif']
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, #1f1f23 1px, transparent 1px), linear-gradient(to bottom, #1f1f23 1px, transparent 1px)"
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* === CORE STYLES === */
+        body { background-color: #020205; color: #d4d4d8; overflow-x: hidden; }
+
+        /* === SCROLLBARS === */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #09090b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a855f7; }
+
+        /* === UTILITIES === */
+        .glass-panel {
+            background: rgba(14, 14, 18, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--hecura-border, rgba(255,255,255,0.08));
+        }
+        
+        .bg-grid { 
+            background-size: 40px 40px; 
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%); 
+            opacity: 0.15; 
+        }
+
+        /* === NAVIGATION ACTIVE STATE === */
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), transparent);
+            border-left: 3px solid #a855f7;
+            color: #fff;
+        }
+
+        /* === TOAST ANIMATIONS === */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .toast-enter { animation: slideIn 0.3s ease-out forwards; }
+        .toast-exit { animation: fadeOut 0.3s ease-in forwards; }
+    </style>
+</head>
+<body class="antialiased min-h-screen relative selection:bg-hecura-accent selection:text-black">
+
+    <div class="fixed inset-0 bg-grid bg-grid-pattern z-0 pointer-events-none"></div>
+
+    <div id="sidebar-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 z-40 hidden backdrop-blur-sm transition-opacity opacity-0 lg:hidden"></div>
+
+    <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 bg-[#0a0a0e] border-r border-white/5 transform -translate-x-full lg:translate-x-0 transition-transform duration-300 z-50 flex flex-col shadow-2xl">
+        
+        <div class="p-6 flex flex-col items-center border-b border-white/5 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-hecura-primary to-transparent opacity-50"></div>
+            <div class="w-14 h-14 mb-3 relative group cursor-pointer">
+                <div class="absolute inset-0 bg-hecura-primary/30 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <img src="logo.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'" alt="HECURA" class="w-full h-full object-contain relative z-10">
+                <div class="hidden absolute inset-0 items-center justify-center text-hecura-primary text-2xl z-0"><i class="fa-solid fa-cube"></i></div>
+            </div>
+            <h2 class="text-2xl font-orbitron font-bold text-white tracking-widest">HECURA</h2>
+            <span class="text-[10px] text-hecura-accent uppercase tracking-[0.2em] opacity-70">Admin Console</span>
+        </div>
+
+        <div class="flex-1 py-6 space-y-1 overflow-y-auto">
+            <a href="dashboard.html" class="nav-item flex items-center px-6 py-3.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
+                <div class="w-6 mr-3 text-center"><i class="fa-solid fa-grid-2"></i></div> 
+                <span class="tracking-wide">Dashboard</span>
+            </a>
+            
+            <a href="participants.html" class="nav-item active flex items-center px-6 py-3.5 text-sm font-medium text-white transition-all shadow-[inset_0_0_20px_rgba(168,85,247,0.05)]">
+                <div class="w-6 mr-3 text-center text-hecura-accent"><i class="fa-solid fa-users"></i></div> 
+                <span class="tracking-wide">Participants</span>
+            </a>
+            
+            <a href="entry.html" class="nav-item flex items-center px-6 py-3.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
+                <div class="w-6 mr-3 text-center"><i class="fa-solid fa-keyboard"></i></div> 
+                <span class="tracking-wide">Manual Entry</span>
+            </a>
+            
+            <a href="results.html" class="nav-item flex items-center px-6 py-3.5 text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
+                <div class="w-6 mr-3 text-center"><i class="fa-solid fa-trophy"></i></div> 
+                <span class="tracking-wide">Update Scores</span>
+            </a>
+        </div>
+        
+        <div class="p-4 border-t border-white/5 bg-black/20 text-xs text-center text-zinc-600">
+            <div class="flex items-center justify-center gap-2 mb-1">
+                <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                <span>SYSTEM ONLINE</span>
+            </div>
+            <div class="font-mono opacity-50">V.2.0.5</div>
+        </div>
+    </nav>
+
+    <main class="lg:ml-64 relative z-10 flex flex-col min-h-screen transition-all duration-300">
+        
+        <header class="h-16 border-b border-white/5 bg-hecura-bg/80 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="lg:hidden text-white p-2 hover:bg-white/10 rounded-lg transition-colors border border-transparent hover:border-white/10">
+                    <i class="fa-solid fa-bars text-lg"></i>
+                </button>
+                <h1 class="text-lg lg:text-xl font-orbitron text-white truncate"><span class="text-hecura-primary">Master</span> Database</h1>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="text-[10px] text-zinc-500 uppercase tracking-wider">Active Event</span>
+                </div>
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded bg-hecura-accent/10 border border-hecura-accent/20">
+                    <i class="fa-solid fa-bolt text-hecura-accent text-xs"></i>
+                    <span class="text-xs md:text-sm font-bold text-hecura-accent truncate max-w-[120px]" id="headerEvent">...</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 lg:p-8 w-full max-w-7xl mx-auto flex flex-col h-[calc(100vh-64px)] overflow-hidden">
+            
+            <div class="glass-panel p-4 rounded-xl mb-4 flex flex-col md:flex-row gap-4 justify-between items-center shadow-lg">
+                
+                <div class="relative w-full md:w-80 group">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-hecura-primary transition-colors"></i>
+                    <input type="text" id="searchInput" placeholder="Search ID, Name or College..." 
+                        class="w-full bg-black/40 border border-white/10 rounded-lg pl-10 pr-4 py-2.5 text-sm text-white focus:border-hecura-primary/50 focus:ring-1 focus:ring-hecura-primary/50 focus:outline-none transition-all placeholder-zinc-600">
+                </div>
+
+                <div class="flex flex-col sm:flex-row w-full md:w-auto gap-3 items-center">
+                    
+                    <div class="hidden lg:flex flex-col items-end mr-2 px-3 border-r border-white/10">
+                        <span class="text-[10px] text-zinc-500 uppercase">Records</span>
+                        <span class="text-lg font-orbitron text-white leading-none" id="totalCount">0</span>
+                    </div>
+
+                    <input type="file" id="jsonInput" accept=".json" class="hidden">
+
+                    <div class="grid grid-cols-3 sm:flex gap-2 w-full sm:w-auto">
+                        <button onclick="document.getElementById('jsonInput').click()" 
+                            class="col-span-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-xs font-bold font-orbitron border border-white/10 transition-all hover:border-green-500/30 hover:text-green-400">
+                            <i class="fa-solid fa-file-import"></i> <span class="hidden sm:inline">IMPORT</span>
+                        </button>
+
+                        <button onclick="exportToCSV()" 
+                            class="col-span-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white px-4 py-2.5 rounded-lg text-xs font-bold font-orbitron border border-white/10 transition-all hover:border-blue-500/30 hover:text-blue-400">
+                            <i class="fa-solid fa-file-csv"></i> <span class="hidden sm:inline">EXPORT</span>
+                        </button>
+                        
+                        <button onclick="deleteAllData()" 
+                            class="col-span-1 flex items-center justify-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 px-4 py-2.5 rounded-lg text-xs font-bold font-orbitron border border-red-500/20 transition-all">
+                            <i class="fa-solid fa-trash"></i> <span class="hidden sm:inline">CLEAR</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-panel flex-1 rounded-xl overflow-hidden flex flex-col relative shadow-lg">
+                
+                <div class="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="text-xs text-zinc-500 uppercase tracking-wider font-bold bg-[#0e0e12] sticky top-0 z-20 shadow-md">
+                            <tr>
+                                <th class="p-4 border-b border-white/10 w-24">ID</th>
+                                <th class="p-4 border-b border-white/10 min-w-[200px]">Participant</th>
+                                <th class="p-4 border-b border-white/10 min-w-[150px]">College</th>
+                                <th class="p-4 border-b border-white/10 w-32">Phone</th>
+                                <th class="p-4 border-b border-white/10 w-32 text-center">Status</th>
+                                <th class="p-4 border-b border-white/10 w-20 text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody" class="text-sm text-zinc-300 font-mono divide-y divide-white/5">
+                            </tbody>
+                    </table>
+                </div>
+
+                <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none hidden bg-[#0e0e12]/50 backdrop-blur-sm z-10">
+                    <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4 border border-white/10">
+                        <i class="fa-solid fa-folder-open text-3xl text-zinc-600"></i>
+                    </div>
+                    <p class="text-zinc-500 font-orbitron text-lg">Database Empty</p>
+                    <p class="text-zinc-600 text-xs mt-1">Import JSON or add entries manually</p>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <div id="toastContainer" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // --- 1. CONFIG & INIT ---
+        
+        // Robust Session Handling: Fallback to a default event if session is missing (Good for testing)
+        let sessionData = sessionStorage.getItem('hecura_session');
+        let user;
+
+        if (sessionData) {
+            user = JSON.parse(sessionData);
+        } else {
+            console.warn("No active session found. Using Default Debug Mode.");
+            user = { event: 'TEST_EVENT', username: 'Admin' };
+            // Optional: Set this session so subsequent reloads work smoothly
+            sessionStorage.setItem('hecura_session', JSON.stringify(user));
+        }
+
+        const DATA_KEY = 'hecura_data_v1';
+        let currentData = [];
+
+        // UI Initialization
+        document.getElementById('headerEvent').innerText = user.event;
+        refreshTable();
+
+        // --- 2. SIDEBAR TOGGLE ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const isClosed = sidebar.classList.contains('-translate-x-full');
+            
+            if (isClosed) {
+                // Open
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+                // Small delay to allow display:block to apply before opacity transition
+                setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+            } else {
+                // Close
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('opacity-0');
+                setTimeout(() => overlay.classList.add('hidden'), 300);
+            }
+        }
+
+        // --- 3. SEARCH LOGIC ---
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = currentData.filter(p => 
+                (p.name && p.name.toLowerCase().includes(term)) || 
+                (p.id && p.id.toLowerCase().includes(term)) ||
+                (p.college && p.college.toLowerCase().includes(term))
+            );
+            renderRows(filtered);
+        });
+
+        // --- 4. IMPORT LOGIC (ENHANCED) ---
+        document.getElementById('jsonInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const rawData = JSON.parse(event.target.result);
+                    if (!Array.isArray(rawData)) throw new Error("JSON root must be an array");
+
+                    let storageData = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+                    let added = 0;
+                    let skipped = 0;
+
+                    rawData.forEach(item => {
+                        // Normalize keys (Case insensitive handling)
+                        const pID = item.id || item.ID || item.Id || item.participant_id;
+                        const pName = item.name || item.Name || item.student_name;
+                        const pCollege = item.college || item.College || item.college_name || "Unknown";
+                        const pPhone = item.phone || item.mobile || item.contact || "-";
+
+                        if(pID && pName) {
+                            // Check duplicates: Same ID and Same Event
+                            const exists = storageData.find(d => 
+                                String(d.id).toLowerCase() === String(pID).toLowerCase() && 
+                                d.event === user.event
+                            );
+                            
+                            if(!exists) {
+                                storageData.push({
+                                    id: String(pID).toUpperCase(),
+                                    name: pName,
+                                    college: pCollege,
+                                    phone: String(pPhone),
+                                    event: user.event,
+                                    score: null,
+                                    timestamp: new Date().toISOString()
+                                });
+                                added++;
+                            } else {
+                                skipped++;
+                            }
+                        }
+                    });
+
+                    localStorage.setItem(DATA_KEY, JSON.stringify(storageData));
+                    
+                    if(added > 0) {
+                        showToast(`Success: ${added} records imported`);
+                    } else if (skipped > 0) {
+                        showToast(`Info: ${skipped} duplicates skipped`);
+                    } else {
+                        showToast("No valid records found to import");
+                    }
+
+                    refreshTable();
+                    e.target.value = ''; // Reset input so same file can be selected again if needed
+                } catch (err) {
+                    showToast("Error: Invalid JSON format");
+                    console.error(err);
+                }
+            };
+            reader.readAsText(file);
+        });
+
+        // --- 5. CORE FUNCTIONS ---
+        function refreshTable() {
+            const allData = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            // Filter only for current user's event
+            currentData = allData.filter(item => item.event === user.event);
+            
+            document.getElementById('totalCount').innerText = currentData.length;
+            renderRows(currentData);
+        }
+
+        function renderRows(data) {
+            const tbody = document.getElementById('tableBody');
+            const emptyState = document.getElementById('emptyState');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            }
+            emptyState.classList.add('hidden');
+
+            const fragment = document.createDocumentFragment();
+
+            data.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 group transition-colors border-b border-white/5 last:border-0";
+                
+                const isDone = (p.score !== null && p.score !== "");
+                const statusHtml = isDone 
+                    ? `<span class="inline-flex items-center px-2 py-1 rounded bg-green-500/10 text-green-500 text-[10px] font-bold border border-green-500/20"><i class="fa-solid fa-check mr-1"></i> DONE</span>`
+                    : `<span class="inline-flex items-center px-2 py-1 rounded bg-zinc-500/10 text-zinc-500 text-[10px] font-bold border border-zinc-500/20"><i class="fa-solid fa-clock mr-1"></i> WAIT</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-white font-orbitron text-xs whitespace-nowrap group-hover:text-hecura-primary transition-colors">${p.id}</td>
+                    <td class="p-4 text-zinc-300">
+                        <div class="font-bold text-sm text-white">${p.name}</div>
+                    </td>
+                    <td class="p-4 text-zinc-400 text-xs">${p.college}</td>
+                    <td class="p-4 text-zinc-500 text-xs font-mono">${p.phone}</td>
+                    <td class="p-4 text-center">${statusHtml}</td>
+                    <td class="p-4 text-center">
+                        <button onclick="deleteParticipant('${p.id}')" class="w-8 h-8 rounded-md hover:bg-red-500/10 text-zinc-600 hover:text-red-500 transition-all flex items-center justify-center mx-auto" title="Delete">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    </td>
+                `;
+                fragment.appendChild(tr);
+            });
+
+            tbody.appendChild(fragment);
+        }
+
+        function deleteParticipant(id) {
+            if(!confirm(`Delete participant ${id}? This cannot be undone.`)) return;
+            
+            let allData = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            // Keep data that does NOT match (ID + Event)
+            const newData = allData.filter(p => !(p.id === id && p.event === user.event));
+            
+            localStorage.setItem(DATA_KEY, JSON.stringify(newData));
+            showToast("Record deleted successfully");
+            refreshTable();
+        }
+
+        function deleteAllData() {
+            if(currentData.length === 0) return;
+            if(!confirm(`⚠️ WARNING ⚠️\n\nAre you sure you want to delete ALL participants for "${user.event}"?\n\nThis action cannot be undone.`)) return;
+            
+            let allData = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            const keepData = allData.filter(p => p.event !== user.event);
+            
+            localStorage.setItem(DATA_KEY, JSON.stringify(keepData));
+            showToast("Database cleared for this event");
+            refreshTable();
+        }
+
+        function exportToCSV() {
+            if (currentData.length === 0) {
+                showToast("No data available to export");
+                return;
+            }
+            
+            const headers = ["ID", "Name", "College", "Phone", "Event", "Score", "Status"];
+            const rows = currentData.map(row => [
+                row.id,
+                `"${row.name}"`, // Quote name to handle commas
+                `"${row.college}"`,
+                row.phone,
+                row.event,
+                row.score || '',
+                (row.score ? 'Evaluated' : 'Pending')
+            ]);
+
+            const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            
+            a.hidden = true;
+            a.href = url;
+            a.download = `${user.event.replace(/\s+/g, '_')}_Participants.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            showToast("Export download started");
+        }
+
+        function showToast(message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            // Modern styling for toast
+            toast.className = "bg-[#0e0e12] border border-hecura-primary/30 text-white px-4 py-3 rounded-lg shadow-[0_4px_20px_rgba(0,0,0,0.5)] flex items-center gap-3 toast-enter pointer-events-auto backdrop-blur-md min-w-[250px]";
+            toast.innerHTML = `
+                <div class="w-2 h-2 rounded-full bg-hecura-primary shadow-[0_0_8px_#a855f7]"></div>
+                <span class="font-sans text-sm tracking-wide">${message}</span>
+            `;
+            
+            container.appendChild(toast);
+
+            // Remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('toast-enter');
+                toast.classList.add('toast-exit');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HECURA | Access Protocol</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hecura: { bg: '#020205', primary: '#a855f7', accent: '#d946ef', cyan: '#06b6d4', glass: 'rgba(20, 20, 30, 0.75)' }
+                    },
+                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], orbitron: ['Orbitron', 'sans-serif'] },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate'
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
+                        glow: { '0%': { boxShadow: '0 0 10px #a855f7' }, '100%': { boxShadow: '0 0 25px #d946ef' } }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                colors: {
+                    hecura: { 
+                        bg: 'var(--bg-core)', 
+                        panel: 'var(--bg-panel)', 
+                        primary: '#a855f7', 
+                        accent: '#d946ef', 
+                        cyan: '#06b6d4', 
+                        text: 'var(--text-main)',
+                        heading: 'var(--text-head)',
+                        border: 'var(--border-color)'
+                    }
+                },
+                fontFamily: { sans: ['Rajdhani', 'sans-serif'], orbitron: ['Orbitron', 'sans-serif'] }
+            }
+        }
+    }
+</script>
+
+<style>
+    /* === THEME VARIABLES === */
+    :root {
+        /* DARK MODE (Default) */
+        --bg-core: #020205;
+        --bg-panel: #0e0e12;
+        --text-main: #d4d4d8;
+        --text-head: #ffffff;
+        --glass-bg: rgba(14, 14, 18, 0.6);
+        --glass-border: rgba(255, 255, 255, 0.05);
+        --sidebar-bg: rgba(14, 14, 18, 0.95);
+        --grid-color: rgba(255, 255, 255, 0.05);
+        --border-color: rgba(255, 255, 255, 0.1);
+        --logo-filter: drop-shadow(0 0 10px rgba(168,85,247,0.5));
+    }
+
+    [data-theme="light"] {
+        /* LIGHT MODE (High-Tech Lab) */
+        --bg-core: #f8fafc;
+        --bg-panel: #ffffff;
+        --text-main: #475569;
+        --text-head: #0f172a;
+        --glass-bg: rgba(255, 255, 255, 0.75);
+        --glass-border: rgba(168, 85, 247, 0.2);
+        --sidebar-bg: rgba(255, 255, 255, 0.95);
+        --grid-color: rgba(168, 85, 247, 0.07);
+        --border-color: rgba(0, 0, 0, 0.1);
+        --logo-filter: drop-shadow(0 0 5px rgba(168,85,247,0.8));
+    }
+
+    /* GLOBAL STYLES */
+    body { background-color: var(--bg-core); color: var(--text-main); transition: background-color 0.5s ease, color 0.5s ease; }
+    
+    /* UTILITIES */
+    .glass-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(12px);
+        border: 1px solid var(--glass-border);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    .nav-item.active { background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), transparent); border-left: 3px solid #a855f7; color: var(--text-head); }
+    .logo-glow { filter: var(--logo-filter); transition: filter 0.5s ease; }
+    
+    /* Sidebar & Header Colors */
+    #sidebar { background-color: var(--sidebar-bg); border-right: 1px solid var(--border-color); }
+    header { background: var(--glass-bg); border-bottom: 1px solid var(--border-color); }
+</style>
+    <style>
+        /* Base Styles */
+        body { background-color: #020205; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #09090b; }
+        ::-webkit-scrollbar-thumb { background: #4c1d95; border-radius: 4px; }
+        
+        /* High-End Glassmorphism */
+        .glass-panel {
+            background: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            box-shadow: 0 0 50px rgba(168, 85, 247, 0.15), inset 0 0 20px rgba(168, 85, 247, 0.05);
+        }
+
+        /* Input Styling */
+        .tech-input {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid #3f3f46;
+            transition: all 0.3s ease;
+        }
+        .tech-input:focus {
+            border-color: #a855f7;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.3);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        /* Input Autofill Override */
+        input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+            -webkit-text-fill-color: white;
+            -webkit-box-shadow: 0 0 0px 1000px #09090b inset;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        /* View Transitions */
+        .hidden-section { display: none; opacity: 0; transform: scale(0.95); }
+        .active-section { display: flex; opacity: 1; transform: scale(1); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        
+        /* Neon Text Effect */
+        .text-neon { text-shadow: 0 0 10px rgba(168, 85, 247, 0.7); }
+    </style>
+</head>
+<body class="bg-hecura-bg text-white h-screen w-screen relative selection:bg-hecura-primary selection:text-white flex flex-col">
+
+    <canvas id="neuralCanvas" class="absolute inset-0 z-0"></canvas>
+    
+    <div class="absolute inset-0 z-0 bg-[radial-gradient(circle_at_center,transparent_0%,#000000_100%)] pointer-events-none opacity-80"></div>
+
+    <main class="relative z-10 w-full flex-grow flex flex-col items-center justify-center p-4">
+        
+        <div class="mb-6 flex flex-col items-center animate-float z-20">
+            <div class="relative w-32 h-32 mb-2 group cursor-pointer">
+                <div class="absolute inset-0 bg-hecura-primary blur-[60px] opacity-50 rounded-full animate-pulse-slow"></div>
+                <img src="logo.png" alt="HECURA" class="w-full h-full object-contain relative z-10 drop-shadow-[0_0_25px_rgba(168,85,247,0.8)] transition-transform duration-500 group-hover:scale-110">
+            </div>
+            <h1 class="text-5xl md:text-7xl font-orbitron font-black tracking-widest bg-gradient-to-r from-white via-purple-300 to-hecura-primary bg-clip-text text-transparent text-center drop-shadow-[0_2px_10px_rgba(168,85,247,0.5)]">
+                HECURA
+            </h1>
+            <div class="flex items-center gap-3 mt-2">
+                <div class="h-[1px] w-12 bg-hecura-cyan shadow-[0_0_10px_#06b6d4]"></div>
+                <p class="text-hecura-cyan tracking-[0.4em] text-xs md:text-sm font-bold uppercase text-neon">Command Protocol V2.0</p>
+                <div class="h-[1px] w-12 bg-hecura-cyan shadow-[0_0_10px_#06b6d4]"></div>
+            </div>
+        </div>
+
+        <div class="glass-panel w-full max-w-[480px] rounded-2xl p-[2px] relative overflow-hidden group z-20">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-hecura-primary to-transparent opacity-80 shadow-[0_0_15px_#a855f7]"></div>
+            
+            <div class="bg-black/40 backdrop-blur-xl rounded-2xl p-8 h-full relative">
+                
+                <div id="view-landing" class="active-section flex-col gap-5 text-center">
+                    <div class="border-b border-white/10 pb-4 mb-2">
+                        <h2 class="text-2xl font-orbitron text-white tracking-wide">Identity Verification</h2>
+                        <p class="text-zinc-400 text-sm mt-1">Secure terminal for Event Coordinators.</p>
+                    </div>
+                    
+                    <button onclick="switchView('login')" class="w-full py-4 bg-white/5 hover:bg-hecura-primary hover:text-white border border-hecura-primary/30 hover:border-hecura-primary rounded-xl font-orbitron tracking-wider transition-all duration-300 group relative overflow-hidden">
+                        <div class="absolute inset-0 bg-hecura-primary/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                        <span class="relative z-10 flex items-center justify-center gap-3">
+                            ACCESS TERMINAL <i class="fa-solid fa-fingerprint"></i>
+                        </span>
+                    </button>
+                    
+                    <button onclick="switchView('signup')" class="w-full py-4 bg-transparent hover:bg-white/5 text-zinc-500 hover:text-white border border-dashed border-zinc-700 hover:border-zinc-500 rounded-xl font-orbitron text-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Request Coordinator ID
+                    </button>
+                </div>
+
+                <form id="form-login" class="hidden-section flex-col gap-5">
+                    <div class="text-center mb-4">
+                        <h2 class="text-2xl font-orbitron text-white">System Login</h2>
+                        <div class="h-1 w-16 bg-hecura-primary mx-auto mt-2 rounded-full shadow-[0_0_10px_#a855f7]"></div>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="relative group">
+                            <i class="fa-solid fa-user-astronaut absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-hecura-primary transition-colors"></i>
+                            <input type="text" id="loginUser" placeholder="Username / Coordinator ID" class="tech-input w-full text-white rounded-lg pl-10 pr-4 py-3 outline-none font-mono tracking-wide">
+                        </div>
+                        <div class="relative group">
+                            <i class="fa-solid fa-shield-halved absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-hecura-primary transition-colors"></i>
+                            <input type="password" id="loginPass" placeholder="Access Code" class="tech-input w-full text-white rounded-lg pl-10 pr-4 py-3 outline-none font-mono">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-hecura-primary to-hecura-accent py-3 rounded-lg font-bold font-orbitron tracking-widest text-white shadow-[0_0_20px_rgba(168,85,247,0.4)] hover:shadow-[0_0_30px_rgba(168,85,247,0.6)] transition-all transform hover:scale-[1.02] mt-2">
+                        INITIALIZE <i class="fa-solid fa-bolt ml-2"></i>
+                    </button>
+
+                    <button type="button" onclick="switchView('landing')" class="text-xs text-zinc-500 hover:text-white text-center mt-2 flex items-center justify-center gap-1 transition-colors">
+                        <i class="fa-solid fa-power-off"></i> Abort Sequence
+                    </button>
+                </form>
+
+                <form id="form-signup" class="hidden-section flex-col gap-4">
+                    <div class="text-center mb-2">
+                        <h2 class="text-xl font-orbitron text-white">New Coordinator</h2>
+                        <p class="text-xs text-zinc-500">Assign designation to generate ID.</p>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="regUser" placeholder="Name" required class="tech-input w-full text-white rounded-lg px-3 py-2 outline-none text-sm">
+                            <input type="password" id="regPass" placeholder="Password" required class="tech-input w-full text-white rounded-lg px-3 py-2 outline-none text-sm">
+                        </div>
+
+                        <select id="regCategory" required class="tech-input w-full text-zinc-300 rounded-lg px-3 py-2 outline-none text-sm cursor-pointer appearance-none">
+                            <option value="" disabled selected>-- Select Domain --</option>
+                            <option value="technical">Technical (Coding/Dev)</option>
+                            <option value="nonTechnical">Non-Technical (Fun/Creative)</option>
+                            <option value="flagship">Flagship (Gaming)</option>
+                        </select>
+
+                        <select id="regEvent" disabled required class="tech-input w-full text-zinc-500 rounded-lg px-3 py-2 outline-none text-sm cursor-not-allowed appearance-none transition-all">
+                            <option value="" disabled selected>-- Select Domain First --</option>
+                        </select>
+
+                        <div class="relative">
+                            <label class="absolute -top-2 left-2 text-[10px] bg-black px-1 text-hecura-cyan font-bold">SYSTEM ID</label>
+                            <input type="text" id="regID" readonly placeholder="Waiting for selection..." class="w-full bg-zinc-900/80 border border-hecura-cyan/50 text-hecura-cyan font-mono font-bold text-center rounded-lg py-2 outline-none tracking-widest cursor-default">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 py-3 rounded-lg font-bold font-orbitron tracking-wide shadow-[0_0_15px_rgba(6,182,212,0.4)] transition-all mt-1">
+                        GENERATE CREDENTIALS
+                    </button>
+
+                    <button type="button" onclick="switchView('landing')" class="text-xs text-zinc-500 hover:text-white text-center">
+                        Return
+                    </button>
+                </form>
+
+            </div>
+        </div>
+        
+        <div class="mt-8 z-20 text-center animate-pulse-slow">
+            <p class="text-[10px] text-zinc-600 font-mono mb-1">SECURE CONNECTION ESTABLISHED</p>
+            <a href="https://deva-portfolio-app.netlify.app/" target="_blank" class="group flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5 hover:border-hecura-primary/50 transition-all hover:bg-black/50">
+                <i class="fa-solid fa-code text-hecura-primary text-xs"></i>
+                <span class="text-xs font-orbitron text-zinc-400 group-hover:text-white transition-colors">
+                    Developed by <span class="text-hecura-accent font-bold">Deva Veera Kumaran</span>
+                </span>
+                <i class="fa-solid fa-external-link-alt text-[10px] text-zinc-600 group-hover:text-hecura-cyan ml-1"></i>
+            </a>
+        </div>
+
+    </main>
+
+    <script>
+        /* =========================================
+           1. CONFIGURATION
+           ========================================= */
+        const eventConfig = {
+            technical: ["Frontend Jam (Vibe Coding)", "Tech Clash", "Prompt to Pixel", "Ideathon", "Project Presentation", "Mind Relay", "Brand-Craft","Bug Bashing", "Blind Code", "Speed-Keys"],
+            nonTechnical: ["Fake-Kit", "Meme-Forge", "Silent Signals", "Frame the Moment", "Connexion", "Sticker on Forehead"],
+            flagship: ["Free Fire", "BGMI", "Chess"]
+        };
+
+        const USERS_KEY = 'hecura_users';
+        const SESSION_KEY = 'hecura_session';
+
+        /* =========================================
+           2. VIEW LOGIC
+           ========================================= */
+        function switchView(viewName) {
+            ['landing', 'login', 'signup'].forEach(v => {
+                const el = document.getElementById(`view-${v}`) || document.getElementById(`form-${v}`);
+                if (viewName === v) {
+                    el.classList.remove('hidden-section');
+                    el.classList.add('active-section');
+                } else {
+                    el.classList.add('hidden-section');
+                    el.classList.remove('active-section');
+                }
+            });
+        }
+
+        /* =========================================
+           3. AUTHENTICATION & ID GENERATION
+           ========================================= */
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check Session
+            if(sessionStorage.getItem(SESSION_KEY)) {
+                window.location.href = 'dashboard.html';
+            }
+
+            // Signup Logic
+            const catSelect = document.getElementById('regCategory');
+            const evtSelect = document.getElementById('regEvent');
+            const idInput = document.getElementById('regID');
+
+            // 1. Category Changed
+            catSelect.addEventListener('change', function() {
+                const cat = this.value;
+                evtSelect.innerHTML = '<option value="" disabled selected>-- Select Event --</option>';
+                
+                if(cat && eventConfig[cat]) {
+                    evtSelect.disabled = false;
+                    evtSelect.classList.remove('cursor-not-allowed', 'text-zinc-500');
+                    evtSelect.classList.add('text-zinc-300');
+                    
+                    eventConfig[cat].forEach(evt => {
+                        const opt = document.createElement('option');
+                        opt.value = evt;
+                        opt.innerText = evt;
+                        evtSelect.appendChild(opt);
+                    });
+                } else {
+                    evtSelect.disabled = true;
+                }
+                idInput.value = "Select Event...";
+            });
+
+            // 2. Event Changed -> Generate ID
+            evtSelect.addEventListener('change', function() {
+                const cat = catSelect.value;
+                if(!cat) return;
+
+                let prefix = "HCR-";
+                if(cat === 'technical') prefix += "T";
+                else if(cat === 'nonTechnical') prefix += "NT";
+                else if(cat === 'flagship') prefix += "F";
+
+                // Simulate ID generation (Random 2 digits + check duplicate would be real backend, here we random)
+                const num = Math.floor(Math.random() * 90 + 10); // 10-99
+                idInput.value = `${prefix}${num}`;
+            });
+
+            // 3. Submit Signup
+            document.getElementById('form-signup').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const user = document.getElementById('regUser').value.trim();
+                const pass = document.getElementById('regPass').value.trim();
+                const evt = document.getElementById('regEvent').value;
+                const sysID = document.getElementById('regID').value;
+
+                if(!evt) return alert("Select an event");
+
+                const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                if(users.find(u => u.username === user)) return alert("Username taken");
+
+                users.push({ 
+                    username: user, 
+                    password: pass, 
+                    event: evt, 
+                    sysID: sysID,
+                    category: catSelect.value 
+                });
+                
+                localStorage.setItem(USERS_KEY, JSON.stringify(users));
+                alert(`ID GENERATED: ${sysID}\nPlease Login.`);
+                document.getElementById('form-signup').reset();
+                switchView('login');
+            });
+
+            // 4. Submit Login
+            document.getElementById('form-login').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const user = document.getElementById('loginUser').value.trim();
+                const pass = document.getElementById('loginPass').value.trim();
+
+                const users = JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
+                const account = users.find(u => (u.username === user || u.sysID === user) && u.password === pass);
+
+                if (account) {
+                    sessionStorage.setItem(SESSION_KEY, JSON.stringify(account));
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert("ACCESS DENIED: Invalid Credentials");
+                }
+            });
+        });
+
+        /* =========================================
+           4. VISUALS: ULTRA-DENSE PARTICLE FIELD
+           ========================================= */
+        const canvas = document.getElementById('neuralCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        
+        // MOUSE INTERACTION
+        let mouse = { x: null, y: null, radius: 200 };
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.x;
+            mouse.y = e.y;
+        });
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initParticles();
+        }
+        window.addEventListener('resize', resize);
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * width;
+                this.y = Math.random() * height;
+                this.vx = (Math.random() - 0.5) * 0.8; // Faster movement
+                this.vy = (Math.random() - 0.5) * 0.8;
+                this.size = Math.random() * 2 + 0.5;
+                this.baseColor = Math.random() > 0.5 ? '#a855f7' : '#06b6d4'; // Purple or Cyan
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // Mouse Repel/Attract Effect
+                if(mouse.x) {
+                    let dx = mouse.x - this.x;
+                    let dy = mouse.y - this.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < mouse.radius) {
+                        const forceDirectionX = dx / dist;
+                        const forceDirectionY = dy / dist;
+                        const force = (mouse.radius - dist) / mouse.radius;
+                        const dir = (dist < 50) ? 1 : -1; // Push gently then pull
+                        this.vx += forceDirectionX * force * 0.05 * dir;
+                        this.vy += forceDirectionY * force * 0.05 * dir;
+                    }
+                }
+
+                if(this.x < 0 || this.x > width) this.vx *= -1;
+                if(this.y < 0 || this.y > height) this.vy *= -1;
+            }
+            draw() {
+                ctx.fillStyle = this.baseColor;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            // DENSITY: 250 for Mobile, 500 for Desktop
+            const count = window.innerWidth < 768 ? 150 : 450; 
+            for(let i=0; i<count; i++) particles.push(new Particle());
+        }
+                function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hecura_theme', newTheme);
+            
+            // Update Icon
+            if(newTheme === 'light') {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            } else {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            
+            particles.forEach((p, index) => {
+                p.update();
+                p.draw();
+                
+                // Draw connections only if close
+                for(let j=index; j<particles.length; j++) {
+                    const dx = p.x - particles[j].x;
+                    const dy = p.y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if(dist < 100) {
+                        ctx.strokeStyle = `rgba(168, 85, 247, ${1 - dist/100})`;
+                        ctx.lineWidth = 0.4;
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(animate);
+        }
+        
+        initParticles();
+        animate();
+    </script>
+</body>
+</html>

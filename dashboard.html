@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HECURA | Command Dashboard</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Rajdhani:wght@300;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        hecura: { 
+                            bg: 'var(--bg-core)', 
+                            panel: 'var(--bg-panel)', 
+                            primary: '#a855f7', 
+                            accent: '#d946ef', 
+                            cyan: '#06b6d4', 
+                            text: 'var(--text-main)',
+                            heading: 'var(--text-head)',
+                            border: 'var(--border-color)'
+                        }
+                    },
+                    fontFamily: { sans: ['Rajdhani', 'sans-serif'], orbitron: ['Orbitron', 'sans-serif'] },
+                    animation: {
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'spin-slow': 'spin 12s linear infinite'
+                    },
+                    keyframes: {
+                        float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-5px)' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* === THEME VARIABLES === */
+        :root {
+            /* DARK MODE (Default - Cyberpunk) */
+            --bg-core: #020205;
+            --bg-panel: #0e0e12;
+            --text-main: #d4d4d8; /* Zinc 300 */
+            --text-head: #ffffff;
+            --glass-bg: rgba(14, 14, 18, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.05);
+            --sidebar-bg: rgba(14, 14, 18, 0.95);
+            --grid-color: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --logo-filter: drop-shadow(0 0 10px rgba(168,85,247,0.5));
+        }
+
+        [data-theme="light"] {
+            /* LIGHT MODE (High-Tech Lab) */
+            --bg-core: #f8fafc; /* Slate 50 */
+            --bg-panel: #ffffff;
+            --text-main: #475569; /* Slate 600 */
+            --text-head: #0f172a; /* Slate 900 */
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(168, 85, 247, 0.2); /* Light Purple Border */
+            --sidebar-bg: rgba(255, 255, 255, 0.95);
+            --grid-color: rgba(168, 85, 247, 0.07); /* Very faint purple grid */
+            --border-color: rgba(0, 0, 0, 0.1);
+            --logo-filter: drop-shadow(0 0 5px rgba(168,85,247,0.8)); /* Stronger shadow for contrast */
+        }
+
+        /* SCROLLBAR & BASE */
+        body { background-color: var(--bg-core); color: var(--text-main); overflow-x: hidden; transition: background-color 0.5s ease, color 0.5s ease; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-panel); }
+        ::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 4px; }
+        
+        /* DYNAMIC BACKGROUND GRID */
+        .bg-grid { 
+            background-size: 40px 40px; 
+            background-image: linear-gradient(to right, var(--grid-color) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px);
+            mask-image: linear-gradient(to bottom, black 40%, transparent 100%); 
+        }
+
+        /* GLASS COMPONENTS ADAPTIVE */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .glass-card:hover {
+            border-color: rgba(168, 85, 247, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(168, 85, 247, 0.15);
+        }
+
+        /* SIDEBAR ADAPTIVE */
+        #sidebar {
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* LOGO FILTER */
+        .logo-glow {
+            filter: var(--logo-filter);
+            transition: filter 0.5s ease;
+        }
+
+        /* NAVIGATION ITEM ACTIVE STATE */
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(168, 85, 247, 0.15), transparent);
+            border-left: 3px solid #a855f7;
+            color: var(--text-head);
+        }
+        .nav-item:hover {
+            color: var(--text-head);
+        }
+        
+        /* HEADER */
+        header {
+            background: var(--glass-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* STATS CARD GLOW VARIANTS */
+        .stat-card-total:hover { box-shadow: 0 0 20px rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.6); }
+        .stat-card-done:hover { box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); border-color: rgba(16, 185, 129, 0.6); }
+        .stat-card-pending:hover { box-shadow: 0 0 20px rgba(245, 158, 11, 0.2); border-color: rgba(245, 158, 11, 0.6); }
+        .stat-card-rate:hover { box-shadow: 0 0 20px rgba(6, 182, 212, 0.2); border-color: rgba(6, 182, 212, 0.6); }
+
+        /* THEME TOGGLE BUTTON */
+        .theme-toggle {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #27272a;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+        }
+        [data-theme="light"] .theme-toggle {
+            background: #cbd5e1;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .theme-handle {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #f59e0b; /* Sun color */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        [data-theme="light"] .theme-handle {
+            transform: translateX(20px);
+            color: #a855f7; /* Moon/Tech color */
+            background: #fff;
+        }
+    </style>
+</head>
+<body class="antialiased min-h-screen flex relative selection:bg-hecura-primary selection:text-white">
+
+    <script>
+        // === THEME INITIALIZATION SCRIPT (Place this at the very top of body to prevent flash) ===
+        const savedTheme = localStorage.getItem('hecura_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        const SESSION = JSON.parse(sessionStorage.getItem('hecura_session'));
+        if (!SESSION) window.location.href = 'index.html';
+    </script>
+
+    <div class="fixed inset-0 bg-grid z-0 pointer-events-none transition-colors duration-500"></div>
+    <div class="fixed top-0 left-0 w-full h-full bg-gradient-to-b from-hecura-bg via-transparent to-hecura-bg z-0 pointer-events-none transition-colors duration-500"></div>
+
+    <nav id="sidebar" class="fixed top-0 left-0 h-full w-64 backdrop-blur-xl transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-50 flex flex-col transition-colors duration-300">
+        <div class="p-6 flex flex-col items-center border-b border-hecura-border">
+            <div class="w-16 h-16 mb-3 relative group cursor-pointer">
+                <div class="absolute inset-0 bg-hecura-primary/30 blur-xl rounded-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                <img src="logo.png" alt="HECURA" class="w-full h-full object-contain relative z-10 logo-glow">
+            </div>
+            <h2 class="text-2xl font-orbitron font-bold text-hecura-heading tracking-widest">HECURA</h2>
+            <p class="text-[10px] text-hecura-cyan tracking-[0.3em] font-bold">ADMIN CONSOLE</p>
+        </div>
+
+        <div class="flex-1 py-6 space-y-1">
+            <a href="dashboard.html" class="nav-item active flex items-center px-6 py-3 text-sm font-medium transition-colors">
+                <i class="fa-solid fa-grid-2 w-6 text-center mr-3 text-hecura-primary"></i> Dashboard
+            </a>
+            
+            <a href="participants.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium transition-colors text-hecura-text group">
+                <i class="fa-solid fa-users w-6 text-center mr-3 group-hover:text-hecura-cyan transition-colors"></i> Participants
+                <span class="ml-auto text-[10px] bg-hecura-primary/20 text-hecura-primary px-2 py-0.5 rounded-full hidden group-hover:block">Master</span>
+            </a>
+
+            <a href="entry.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium transition-colors text-hecura-text group">
+                <i class="fa-solid fa-keyboard w-6 text-center mr-3 group-hover:text-green-400 transition-colors"></i> Manual Entry
+            </a>
+
+            <a href="results.html" class="nav-item flex items-center px-6 py-3 text-sm font-medium transition-colors text-hecura-text group">
+                <i class="fa-solid fa-trophy w-6 text-center mr-3 group-hover:text-yellow-400 transition-colors"></i> Update Scores
+            </a>
+        </div>
+
+        <div class="p-4 border-t border-hecura-border bg-black/5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-hecura-primary to-cyan-500 flex items-center justify-center text-white font-bold font-orbitron shadow-lg" id="avatarInitial">
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-hecura-heading truncate" id="sidebarName">Loading...</p>
+                    <p class="text-xs text-zinc-500 truncate" id="sidebarID">ID: ...</p>
+                </div>
+                <button onclick="logout()" class="text-zinc-400 hover:text-red-500 transition-colors p-2" title="Logout">
+                    <i class="fa-solid fa-power-off"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+    <main class="flex-1 md:ml-64 relative z-10 flex flex-col min-h-screen">
+        
+        <header class="h-16 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-4 md:px-8 transition-colors duration-300">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="md:hidden text-hecura-heading hover:text-hecura-primary transition-colors">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+                <div class="hidden md:block">
+                    <h1 class="text-xl font-orbitron text-hecura-heading">Event Statistics</h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 md:gap-6">
+                
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-moon text-xs text-hecura-text"></i>
+                    <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                        <div class="theme-handle">
+                            <i class="fa-solid fa-sun" id="themeIcon"></i>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-sun text-xs text-hecura-text"></i>
+                </div>
+
+                <div class="h-8 w-[1px] bg-hecura-border hidden md:block"></div>
+
+                <div class="hidden md:flex flex-col items-end mr-2">
+                    <span class="text-[10px] text-zinc-500 uppercase tracking-wider">Assigned Event</span>
+                    <span class="text-xs text-hecura-cyan font-bold" id="headerEvent">LOADING...</span>
+                </div>
+                
+                <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-hecura-panel/50 border border-hecura-border">
+                    <i class="fa-solid fa-clock text-hecura-primary text-xs"></i>
+                    <span class="text-xs font-mono text-hecura-text" id="dashTime">--:--:--</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-4 md:p-8 max-w-7xl mx-auto w-full space-y-8">
+
+            <div class="glass-card rounded-2xl p-6 md:p-8 relative overflow-hidden group">
+                <div class="absolute right-0 top-0 w-64 h-64 bg-hecura-primary/10 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
+                
+                <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-hecura-primary text-white uppercase tracking-wider">Coordinator Access</span>
+                            <span class="text-zinc-500 text-xs font-mono">LIVE DATA</span>
+                        </div>
+                        <h2 class="text-3xl md:text-4xl font-orbitron text-hecura-heading mb-1">Hello, <span id="userName" class="text-transparent bg-clip-text bg-gradient-to-r from-hecura-primary to-hecura-cyan">Coordinator</span></h2>
+                        <p class="text-hecura-text text-sm">You are managing <strong id="userEvent" class="text-hecura-heading">...</strong></p>
+                    </div>
+                    
+                    <a href="entry.html" class="px-6 py-3 bg-hecura-heading text-hecura-bg font-bold font-orbitron rounded hover:bg-hecura-cyan hover:text-white transition-all shadow-[0_0_20px_rgba(168,85,247,0.2)] flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> ADD PARTICIPANT
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <div class="glass-card stat-card-total p-5 rounded-xl border-l-4 border-hecura-primary relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Total Participants</p>
+                            <h3 class="text-4xl font-orbitron text-hecura-heading" id="statTotal">0</h3>
+                        </div>
+                        <div class="p-3 bg-hecura-primary/10 rounded-lg text-hecura-primary">
+                            <i class="fa-solid fa-users text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-zinc-500 mt-2">Registered for your event</p>
+                </div>
+
+                <div class="glass-card stat-card-done p-5 rounded-xl border-l-4 border-emerald-500 relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Evaluated</p>
+                            <h3 class="text-4xl font-orbitron text-hecura-heading" id="statEvaluated">0</h3>
+                        </div>
+                        <div class="p-3 bg-emerald-500/10 rounded-lg text-emerald-500">
+                            <i class="fa-solid fa-check-double text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 w-full bg-zinc-800/20 h-1 rounded-full overflow-hidden">
+                        <div id="barEvaluated" class="h-full bg-emerald-500 w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card-pending p-5 rounded-xl border-l-4 border-amber-500 relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Pending</p>
+                            <h3 class="text-4xl font-orbitron text-hecura-heading" id="statPending">0</h3>
+                        </div>
+                        <div class="p-3 bg-amber-500/10 rounded-lg text-amber-500">
+                            <i class="fa-solid fa-hourglass-half text-xl"></i>
+                        </div>
+                    </div>
+                    <div class="mt-4 w-full bg-zinc-800/20 h-1 rounded-full overflow-hidden">
+                        <div id="barPending" class="h-full bg-amber-500 w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+
+                <div class="glass-card stat-card-rate p-5 rounded-xl border-l-4 border-cyan-500 relative overflow-hidden">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Completion</p>
+                            <h3 class="text-4xl font-orbitron text-hecura-heading"><span id="statRate">0</span>%</h3>
+                        </div>
+                        <div class="p-3 bg-cyan-500/10 rounded-lg text-cyan-500">
+                            <i class="fa-solid fa-chart-pie text-xl"></i>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-zinc-500 mt-2">Evaluation Progress</p>
+                </div>
+            </div>
+
+            <h3 class="text-lg font-orbitron text-zinc-500 border-l-2 border-hecura-primary pl-3">Coordinator Actions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <a href="participants.html" class="glass-card p-6 rounded-xl group relative overflow-hidden h-40 flex flex-col justify-end">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10 pointer-events-none"></div>
+                    <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-110 transition-transform duration-700">
+                    
+                    <div class="relative z-20">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <h4 class="text-xl font-orbitron text-white group-hover:text-hecura-cyan transition-colors">Master List</h4>
+                                <p class="text-xs text-zinc-400 mt-1">View/Upload Data</p>
+                            </div>
+                            <div class="h-10 w-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white group-hover:bg-hecura-cyan group-hover:text-black transition-all">
+                                <i class="fa-solid fa-database"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="entry.html" class="glass-card p-6 rounded-xl group relative overflow-hidden h-40 flex flex-col justify-end">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10 pointer-events-none"></div>
+                    <img src="https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-110 transition-transform duration-700">
+                    
+                    <div class="relative z-20">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <h4 class="text-xl font-orbitron text-white group-hover:text-green-400 transition-colors">Register</h4>
+                                <p class="text-xs text-zinc-400 mt-1">New Participant Entry</p>
+                            </div>
+                            <div class="h-10 w-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white group-hover:bg-green-400 group-hover:text-black transition-all">
+                                <i class="fa-solid fa-user-plus"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+                <a href="results.html" class="glass-card p-6 rounded-xl group relative overflow-hidden h-40 flex flex-col justify-end">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent z-10 pointer-events-none"></div>
+                    <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&q=80" class="absolute inset-0 w-full h-full object-cover opacity-30 group-hover:scale-110 transition-transform duration-700">
+                    
+                    <div class="relative z-20">
+                        <div class="flex justify-between items-end">
+                            <div>
+                                <h4 class="text-xl font-orbitron text-white group-hover:text-amber-400 transition-colors">Scoring</h4>
+                                <p class="text-xs text-zinc-400 mt-1">Update Results</p>
+                            </div>
+                            <div class="h-10 w-10 rounded-full bg-white/10 backdrop-blur flex items-center justify-center text-white group-hover:bg-amber-400 group-hover:text-black transition-all">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+
+            <div class="mt-8 pt-8 border-t border-hecura-border flex flex-col md:flex-row justify-between items-center text-xs text-zinc-500 font-mono">
+                <div>
+                    SYSTEM V2.0.4 | SECURE CONNECTION
+                </div>
+                <div class="mt-2 md:mt-0">
+                    Developed by <a href="https://deva-portfolio-app.netlify.app/" target="_blank" class="text-hecura-primary hover:text-hecura-cyan transition-colors">Deva Veera Kumaran</a>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // 1. SESSION MANAGEMENT
+        const user = JSON.parse(sessionStorage.getItem('hecura_session'));
+        
+        // Update User Profile UI
+        document.getElementById('userName').innerText = user.username;
+        document.getElementById('sidebarName').innerText = user.username;
+        document.getElementById('userEvent').innerText = user.event;
+        document.getElementById('headerEvent').innerText = user.event.toUpperCase();
+        document.getElementById('sidebarID').innerText = user.sysID || 'ID-UNKNOWN';
+        document.getElementById('avatarInitial').innerText = user.username.charAt(0).toUpperCase();
+
+        // 2. DATA STATS ENGINE
+        const DATA_KEY = 'hecura_data_v1';
+
+        function updateStats() {
+            // Get ALL data
+            const allData = JSON.parse(localStorage.getItem(DATA_KEY) || '[]');
+            
+            // FILTER data for CURRENT USER'S EVENT ONLY
+            const myData = allData.filter(p => p.event === user.event);
+            
+            const total = myData.length;
+            const evaluated = myData.filter(p => p.score !== "" && p.score !== null && p.score !== undefined).length;
+            const pending = total - evaluated;
+            const rate = total === 0 ? 0 : Math.round((evaluated / total) * 100);
+
+            // Animate Numbers
+            animateValue('statTotal', total);
+            animateValue('statEvaluated', evaluated);
+            animateValue('statPending', pending);
+            animateValue('statRate', rate);
+
+            // Animate Progress Bars
+            // Evaluated Bar (Green)
+            document.getElementById('barEvaluated').style.width = `${rate}%`;
+            
+            // Pending Bar (Amber) - Inverse of rate
+            document.getElementById('barPending').style.width = `${100 - rate}%`;
+        }
+
+        function animateValue(id, end) {
+            const obj = document.getElementById(id);
+            if(!obj) return;
+            
+            let start = 0;
+            const duration = 1500;
+            
+            if(end === 0) { obj.innerText = 0; return; }
+
+            let current = start;
+            const increment = Math.ceil(end / 30);
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= end) {
+                    current = end;
+                    clearInterval(timer);
+                }
+                obj.innerText = current;
+            }, 30);
+        }
+
+        // 3. THEME TOGGLE FUNCTIONALITY
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.getElementById('themeIcon');
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('hecura_theme', newTheme);
+            
+            // Update Icon
+            if(newTheme === 'light') {
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            } else {
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            }
+        }
+        
+        // Initialize Icon on Load
+        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const icon = document.getElementById('themeIcon');
+        if(currentTheme === 'light') {
+            icon.classList.remove('fa-sun');
+            icon.classList.add('fa-moon');
+        }
+
+        // 4. UTILS
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function logout() {
+            if(confirm('Terminating Session... Confirm?')) {
+                sessionStorage.removeItem('hecura_session');
+                window.location.href = 'index.html';
+            }
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('dashTime').innerText = now.toLocaleTimeString();
+        }
+
+        // INIT
+        updateStats();
+        setInterval(updateTime, 1000);
+        updateTime();
+
+    </script>
+</body>
+</html>
